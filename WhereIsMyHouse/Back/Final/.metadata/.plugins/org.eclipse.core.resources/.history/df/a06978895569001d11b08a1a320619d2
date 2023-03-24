@@ -1,0 +1,233 @@
+package com.ssafy.board.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.ssafy.board.dto.Board;
+import com.ssafy.board.dto.Comment;
+import com.ssafy.board.service.BoardService;
+
+import ch.qos.logback.core.recovery.ResilientSyslogOutputStream;
+
+@RequestMapping("/board")
+@Controller
+public class BoardController {
+
+	@Autowired
+	BoardService boardService;
+
+	@PostMapping
+	@RequestMapping("/count")
+	public ResponseEntity<Map<String, String>> boardCount() {
+		String count = boardService.boardCount();
+		Map<String, String> resultMap = new HashMap<>();
+		resultMap.put("count", count);
+		return new ResponseEntity<>(resultMap, HttpStatus.OK);
+
+	}
+
+	@PostMapping
+	@RequestMapping("/selectBoard")
+	public ResponseEntity<List<Board>> selectBoard(@RequestBody int num) {
+		int n = (num - 1) * 10;
+		List boardList = boardService.selectBoard(n);
+		if (boardList != null) {
+			return new ResponseEntity<List<Board>>(boardList, HttpStatus.OK);
+		} else {
+			return null;
+		}
+
+	}
+
+	@PostMapping
+	@RequestMapping("/writeBoard")
+	public ResponseEntity<Map<String, Object>> writeBoard(@RequestBody Board board) {
+		Map<String, Object> resultMap = new HashMap<>();
+
+		System.out.println(board);
+
+		int i = boardService.writeBoard(board);
+
+		if (i > 0) {
+			resultMap.put("message", "글 등록 성공");
+		} else {
+			resultMap.put("message", "글 등록 실패");
+		}
+
+		return new ResponseEntity<>(resultMap, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/getArticle")
+	public ResponseEntity<Board> getArticle(@RequestBody Map<String, String> no) {
+		// System.out.println(no);
+		int num = Integer.parseInt(no.get("item"));
+		Board board = boardService.getArticle(num);
+
+		return new ResponseEntity<>(board, HttpStatus.OK);
+
+	}
+
+	@PostMapping
+	@RequestMapping("/addHits")
+	public void addHits(@RequestBody Map<String, String> no) {
+
+		int num = Integer.parseInt(no.get("item"));
+
+		boardService.addHits(num);
+
+	}
+
+	@PostMapping
+	@RequestMapping("/searchTitle")
+	public ResponseEntity<List<Board>> searchTitle(@RequestBody Map<String, String> text) {
+
+		List<Board> board = boardService.searchTitle(text);
+
+		return new ResponseEntity<List<Board>>(board, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/searchTitlePage")
+	public ResponseEntity<List<Board>> searchTitlePage(@RequestBody Map<String, Object> item) {
+		int num = ((int)item.get("page")-1)*10;
+		
+		item.put("num", num);
+		
+		List<Board> board = boardService.searchTitlePage(item);
+
+		return new ResponseEntity<List<Board>>(board, HttpStatus.OK);
+	}
+	
+	@PostMapping
+	@RequestMapping("/countArticleText")
+	public ResponseEntity<Map<String, String>> countArticleText(@RequestBody Map<String, String> text) {
+		String count = boardService.countArticleText(text);
+		Map<String, String> resultMap = new HashMap<>();
+		resultMap.put("count", count);
+		return new ResponseEntity<>(resultMap, HttpStatus.OK);
+
+	}
+
+	@PostMapping
+	@RequestMapping("/getMaxCode")
+	public ResponseEntity<Map<String, Integer>> getMaxCode() {
+
+		Map<String, Integer> resultMap = new HashMap<>();
+		int i = boardService.getMaxCode();
+
+		if (i >= 0) {
+			resultMap.put("num", i);
+		}
+
+		return new ResponseEntity<Map<String, Integer>>(resultMap, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/modifyBoard")
+	public ResponseEntity<Map<String, String>> modifyBoard(@RequestBody Board board) {
+
+		Map<String, String> resultMap = new HashMap<>();
+
+		// System.out.println(board);
+		int i = boardService.modifyBoard(board);
+
+		if (i > 0) {
+			resultMap.put("message", "수정 완료");
+		} else {
+			resultMap.put("message", "수정 중 오류 발생");
+		}
+
+		return new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/deleteBoard")
+	public ResponseEntity<Map<String, String>> deleteBoard(@RequestBody Map<String, Integer> item) {
+
+		Map<String, String> resultMap = new HashMap<>();
+
+		int j = boardService.deleteAllComment(item);
+		int i = boardService.deleteBoard(item);
+
+		if (i > 0 && j > 0) {
+			resultMap.put("message", "삭제 완료");
+		} else {
+			resultMap.put("message", "삭제 중 오류 발생");
+		}
+
+		return new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.OK);
+	}
+	////////////////////// 댓글////////////////////////////////////////////////
+
+	@PostMapping
+	@RequestMapping("/getComment")
+	public ResponseEntity<List<Comment>> getComment(@RequestBody Map<String, String> no) {
+
+		int num = Integer.parseInt(no.get("item"));
+		List<Comment> list = boardService.getComment(num);
+		// System.out.println(list);
+
+		return new ResponseEntity<List<Comment>>(list, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/addComment")
+	public ResponseEntity<Map<String, String>> getComment(@RequestBody Comment comment) {
+		Map<String, String> resultMap = new HashMap<>();
+
+		int i = boardService.addComment(comment);
+
+		if (i > 0) {
+			resultMap.put("message", "댓글입력성공");
+		} else {
+			resultMap.put("message", "댓글입력실패");
+		}
+
+		return new ResponseEntity<>(resultMap, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/removeComment")
+	public ResponseEntity<Map<String, String>> removeComment(@RequestBody Map<String, Integer> no) {
+
+		Map<String, String> resultMap = new HashMap<>();
+		// System.out.println(num);
+		int i = boardService.removeComment(no);
+
+		System.out.println(i);
+
+		if (i > 0) {
+			resultMap.put("message", "삭제 완료");
+		} else {
+			resultMap.put("message", "삭제 중 오류 발생");
+		}
+
+		return new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.OK);
+	}
+
+	@PostMapping
+	@RequestMapping("/modifyComment")
+	public ResponseEntity<Map<String, String>> modifyComment(@RequestBody Comment comment) {
+		Map<String, String> resultMap = new HashMap<>();
+		int i = boardService.modifyComment(comment);
+
+		if (i > 0) {
+			resultMap.put("message", "수정 완료");
+		} else {
+			resultMap.put("message", "수정 중 오류 발생");
+		}
+
+		return new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.OK);
+	}
+
+}

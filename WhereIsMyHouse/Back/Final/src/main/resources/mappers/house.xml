@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.house.mapper.HouseMapper">
+
+	<!-- 시도 구군 정보 조회 -->
+
+	<select id="getSido" resultType="dongCode">
+		select distinct left(dongCode,
+		2) sidoCode, sidoName
+		from dongcode
+		order by dongCode
+	</select>
+
+	<select id="getGugun" parameterType="HashMap"
+		resultType="dongCode">
+		select distinct left(dongCode, 5) gugunCode, gugunName
+		from
+		dongcode
+		where left(dongCode, 2) = #{sidoCode} and gugunName is not
+		null
+		order by dongCode
+	</select>
+
+	<select id="getDong" parameterType="HashMap"
+		resultType="dongCode">
+		select distinct dongCode, dongName
+		from dongcode
+		where
+		left(dongCode, 5) = #{gugunCode} and dongName is not null
+		order by
+		dongCode
+
+	</select>
+
+	<!-- 매물 정보 -->
+	<select id="getHouseList" parameterType="HashMap"
+		resultType="houseinfo">
+		select hi.aptCode aptCode, hi.apartmentName aptName,
+		hi.roadName roadName,
+		dg.sidoName sidoName, dg.gugunName gugunName,
+		dg.dongCode dongCode, dg.dongName dongName,
+		hi.buildYear buildYear,
+		hd.floor floor, hd.area area, hd.dealAmount dealAmount,
+		hi.lat lat,
+		hi.lng lng,
+		hd.dealYear dealYear, hd.dealMonth dealMonth
+		from houseinfo
+		hi inner join housedeal hd
+		on hi.aptCode = hd.aptCode
+		inner join
+		dongcode dg
+		on hi.dongCode = dg.dongCode
+		where hi.dongCode= #{dongCode}
+		and hd.dealYear=#{year} and hd.dealMonth=#{month};
+	</select>
+
+	<!-- 관심지역 관련 -->
+	<select id="checkFavorite" parameterType="HashMap"
+		resultType="int">
+		select count(aptCode)
+		from favoritehome
+		where
+		aptCode=#{aptCode} and nickname=#{nickname}
+
+	</select>
+
+	<insert id="addFavorite" parameterType="HashMap">
+		insert into
+		favoritehome(nickname, aptCode) values(#{nickname}, #{aptCode})
+	</insert>
+
+	<select id="getFavorite" parameterType="HashMap"
+		resultType="houseinfo">
+		select hi.roadName roadName, hi.apartmentName aptName,
+		hi.aptCode aptCode
+		from houseinfo hi inner join favoritehome fh
+		on
+		hi.aptCode = fh.aptCode
+		where fh.nickname=#{nickname}
+	</select>
+
+	<select id="getAptInfo" parameterType="HashMap"
+		resultType="houseinfo">
+		select hi.aptCode aptCode, hi.apartmentName aptName, hi.lat
+		lat, hi.lng lng, hi.dongCode,
+		dc.sidoName sidoName, dc.gugunName
+		gugunName,
+		dc.dongName dongName, hi.roadName
+		from houseinfo hi inner
+		join dongcode
+		dc
+		on hi.dongCode = dc.dongCode
+		where hi.aptCode=#{aptCode}
+	</select>
+
+	<select id="getSchool" parameterType="houseinfo"
+		resultType="school">
+		select schoolid, schoolname, schoolVal, buildshape, bonbun,
+		roadname, lat, lng, buildday
+		from school
+		where jibun like
+		concat('%',#{sidoName},'%') and jibun like
+		concat('%',#{gugunName},'%') and
+		jibun like concat('%',#{dongName},'%')
+	</select>
+
+	<delete id="deleteFavorite" parameterType="HashMap">
+		delete from
+		favoritehome where nickname=#{nickname} and aptCode=#{aptCode}
+	</delete>
+
+	<select id="getDealLog" parameterType="HashMap"
+		resultType="deallog">
+		select aptCode, ROUND(avg(cast(replace(dealAmount,',','')
+		as unsigned))) as price, dealYear year
+		from housedeal
+		where
+		aptCode=#{aptCode}
+		group by dealYear;
+	</select>
+
+	<select id="getAvgDong" parameterType="HashMap"
+		resultType="deallog">
+		select hi.aptCode aptCode,
+		ROUND(avg(cast(replace(hd.dealAmount,',','') as unsigned))) as price,
+		hd.dealYear year
+		from housedeal hd inner join houseinfo hi
+		on hd.aptCode = hi.aptCode
+		where hi.dongCode = #{dongCode}
+		group by dealYear;
+	</select>
+
+
+</mapper>

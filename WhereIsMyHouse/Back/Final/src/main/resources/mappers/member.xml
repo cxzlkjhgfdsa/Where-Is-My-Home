@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.member.mapper.MemberMapper">
+
+	<!-- login 구현완료 -->
+	<select id="login" parameterType="memberDto"
+		resultType="memberDto">
+		select nickname, id
+		from member
+		where id = #{id} and password
+		= #{password}
+	</select>
+
+
+	<insert id="insertMember" parameterType="memberDto">
+		insert into member(id,
+		password, nickname, toggle)
+		values(#{id}, #{password}, #{nickname}, 0)
+	</insert>
+
+	<select id="userInfo" parameterType="string"
+		resultType="memberDto">
+		select nickname, id
+		from member
+		where id = #{id}
+	</select>
+
+	<update id="updateMember" parameterType="memberDto">
+		update member
+		set
+		password = #{password}, nickname = #{nickname}
+		where id = #{id}
+	</update>
+
+	<select id="nicknameCheck" parameterType="string"
+		resultType="memberDto">
+		select nickname, id
+		from member
+		where nickname = #{nickname}
+	</select>
+
+	<select id="pwCheck" parameterType="memberDto"
+		resultType="memberDto">
+		select nickname
+		from member
+		where id = #{id} and password =
+		#{password}
+	</select>
+
+	<!-- 토큰 3형제 -->
+	<select id="getRefreshToken" parameterType="string"
+		resultType="string">
+		select token
+		from member
+		where id = #{id}
+	</select>
+
+	<update id="saveRefreshToken" parameterType="map">
+		update member
+		set
+		token = #{token}
+		where id = #{id}
+	</update>
+
+	<update id="deleteRefreshToken" parameterType="map">
+		update member
+		set
+		token = #{token, jdbcType=VARCHAR}
+		where id = #{id}
+	</update>
+
+	<!-- 보안 -->
+	<select id="selectSecurity" parameterType="String"
+		resultType="SecVO">
+		select salt,secKey from secure where id=#{id}
+	</select>
+
+	<insert id="insertSecurity" parameterType="SecVO">
+		insert into secure (id,salt,secKey)values(#{id}, #{salt}, #{secKey})
+	</insert>
+
+	<select id="selectOneMember" parameterType="int"
+		resultType="memberDto">
+		select *
+		from member
+		where no = #{no}
+	</select>
+
+	<insert id="insertLoginHistory" parameterType="memberDto">
+		insert into login_history (id,lastFailedLogin,lastSuccessedLogin,retry)
+		values(#{id}, 0, 0, 0)
+	</insert>
+
+	<select id="selectAllMember" resultType="memberDto">
+		select *
+		from member
+	</select>
+
+	<select id="findByUserId" parameterType="String"
+		resultType="memberDto">
+		select *
+		from member
+		where id = #{id}
+	</select>
+
+
+
+	<!-- Delete -->
+	<delete id="deleteMember" parameterType="memberDto">
+		delete from member where
+		id=#{id}
+	</delete>
+
+	<delete id="deleteBoard" parameterType="memberDto">
+		delete from board where
+		nickname=#{nickname};
+	</delete>
+
+	<delete id="deleteSubboard" parameterType="memberDto">
+		delete from subboard
+		where nickname=#{nickname};
+	</delete>
+
+	<delete id="deleteLoginHistory" parameterType="memberDto">
+		delete from
+		login_history where id=#{id};
+	</delete>
+
+	<delete id="deleteSecurity" parameterType="memberDto">
+		delete from secure
+		where id=#{id};
+	</delete>
+
+	<delete id="deleteFavorite" parameterType="memberDto">
+		delete from
+		favoritehome where nickname=#{nickname};
+	</delete>
+
+
+
+	<update id="updateMemberSecurity" parameterType="SecVO">
+		update secure
+		set salt=#{salt},
+		secKey=#{secKey},
+		where id=#{id}
+	</update>
+
+	<select id="findMemberSecurityByUserId" parameterType="String"
+		resultType="SecVO">
+		select id,
+		salt,
+		secKey
+		from secure
+		where id = #{id}
+	</select>
+
+	<select id="checkSecurity" parameterType="String"
+		resultType="SecurityModel">
+		select * from login_history where id = #{id}
+	</select>
+
+	<update id="updateSecurityModel" parameterType="SecurityModel">
+		update
+		login_history set
+		lastFailedLogin= #{lastFailedLogin},
+		lastSuccessedLogin=#{lastSuccessedLogin},
+		retry=#{retry}
+		where id=#{id};
+	</update>
+
+	<insert id="insertSecurityModel" parameterType="SecurityModel">
+		insert into
+		login_history(id, lastFailedLogin, lastSuccessedLogin, retry,
+		clientIp)
+		values(#{id},0, 0, 0,#{clientIp})
+	</insert>
+
+</mapper>

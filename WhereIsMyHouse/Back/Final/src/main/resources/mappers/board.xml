@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.board.mapper.BoardMapper">
+	
+	<!-- 게시글 관련  -->
+	<select id="boardCount" resultType="String">
+		select count(code)
+		from board
+	</select>
+	
+	<select id="selectBoard" parameterType="Integer" resultType="board">
+		select *
+		from board
+		order by code desc limit #{n}, 10
+	</select>
+	
+	<select id="getArticle" parameterType="Integer" resultType="board">
+		select *
+		from board
+		where code=#{num}
+	</select>
+	
+	<insert id="writeBoard" parameterType="board">
+		insert into board(title, content, reg_datetime, hits, nickname) 
+		values(#{title}, #{content}, now(), 0, #{nickname})
+	</insert>
+	
+	<update id="addHits" parameterType="Integer">
+		update board set hits= hits+1 where code=#{num}
+	</update>
+	
+	<update id="modifyBoard" parameterType="board">
+		update board set title=#{title}, content=#{content} where code=#{code}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="HashMap">
+		delete from board where code=#{code}
+	</delete>
+	
+	<select id="getMaxCode" resultType="int">
+		select max(no)
+		from subboard;
+	</select>
+	
+	<select id="searchTitle" parameterType="HashMap" resultType="board">
+		select *
+		from board
+		where title like concat('%',#{text},'%') limit 0, 10;
+	</select>
+	
+	<select id="searchTitlePage" parameterType="HashMap" resultType="board">
+		select *
+		from board
+		where title like concat('%',#{text},'%') limit #{num}, 10;
+	</select>
+	 
+	<select id="countArticleText" parameterType="HashMap" resultType="String">
+		select count(code)
+		from board
+		where title like concat('%',#{text},'%')
+	
+	</select>
+	
+	<select id="getNickname" parameterType="HashMap" resultType="String">
+		select nickname
+		from member
+		where id=#{id}
+	</select>
+	
+	<!-- 댓글 관련 -->
+	
+	<select id="getComment" parameterType="HashMap" resultType="comment">
+		select *
+		from subboard
+		where code=#{item} limit #{num}, 5
+	</select>
+	
+	<insert id="addComment" parameterType="comment">
+		insert into subboard(code, comment, nickname) values(#{code}, #{comment}, #{nickname})
+	</insert>
+	
+	<delete id="removeComment" parameterType="HashMap">
+		delete from subboard where no = #{item}	
+	</delete>
+	
+	<update id="modifyComment" parameterType="comment">
+		update subboard set comment=#{comment} where no = #{no}
+	</update>
+	
+	<delete id="deleteAllComment" parameterType="HashMap">
+		delete from subboard where code=#{code}
+	</delete>
+	
+	<select id="countComment" parameterType="HashMap" resultType="Integer">
+		select count(no)
+		from subboard
+		where code = #{item}
+	</select>
+	
+	<update id="upCount" parameterType="HashMap">
+		update board set favCount = favCount+1 where code=#{code}	
+	</update>
+	
+	<update id="downCount" parameterType="HashMap">
+		update board set favCount = favCount-1 where code=#{code}	
+	</update>
+	
+	<insert id="addLike" parameterType="HashMap">
+		insert into likeboard(nickname, code) values(#{nickname}, #{code})
+	</insert>
+	<delete id="deleteLike" parameterType="HashMap">
+		delete from likeboard where nickname=#{nickname} and code=#{code}
+	</delete>
+	
+	<select id="checkLike" parameterType="HashMap" resultType="int">
+		select count(code)
+		from likeboard
+		where code=#{code} and nickname=#{nickname}
+	</select>
+	
+	
+
+</mapper>

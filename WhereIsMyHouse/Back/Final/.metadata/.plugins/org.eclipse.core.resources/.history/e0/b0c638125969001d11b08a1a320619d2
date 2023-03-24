@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.vue.model.mapper.MemberMapper">
+
+	<!-- login 구현완료 -->
+	<select id="login" parameterType="memberDto" resultType="memberDto">
+		select nickname, id
+		from member
+		where id = #{id} and password = #{password}
+	</select>
+	
+	
+	<insert id="insertMember" parameterType="memberDto">
+		insert into member(id, password, nickname, toggle)
+		values(#{id}, #{password}, #{nickname}, 0)
+	</insert>
+
+	<select id="userInfo" parameterType="string" resultType="memberDto">
+		select nickname, id
+		from member
+		where id = #{id}
+	</select>
+
+    <!-- 토큰 3형제 -->
+	<select id="getRefreshToken" parameterType="string" resultType="string">
+		select token
+		from member
+		where id = #{id}
+	</select>
+
+	<update id="saveRefreshToken" parameterType="map">
+		update member
+		set token = #{token}
+		where id = #{id}
+	</update>
+
+	<update id="deleteRefreshToken" parameterType="map">
+		update member
+		set token = #{token, jdbcType=VARCHAR}
+		where id = #{id}
+	</update>
+
+	<!-- 보안 -->
+	<select id="selectSecurity" parameterType="String" resultType="SecVO">
+    	select salt,secKey from secure where id=#{id}
+    </select>
+    
+	<insert id="insertSecurity" parameterType="SecVO">
+    	insert into secure (id,salt,secKey)values(#{id}, #{salt}, #{secKey})
+     </insert>
+
+
+	<select id="selectOneMember" parameterType="int" resultType="memberDto">
+		select *
+		from member
+		where idx = #{idx}
+	</select>
+
+	<select id="selectAllMember" resultType="memberDto">
+		select *
+		from member
+	</select>
+
+	<select id="findByUserId" parameterType="String" resultType="memberDto">
+		select *			
+		from member
+		where id = #{id}
+	</select>
+
+	<!--<delete id="deleteMember" parameterType="member">
+		delete from member where id=#{id}
+	</delete>	-->
+
+	
+
+	<update id="updateMemberSecurity" parameterType="SecVO">
+		update  secure
+		      set  salt=#{salt},
+		            secKey=#{secKey},
+		      where userId=#{userId}
+	</update>
+
+	<select id="findMemberSecurityByUserId" parameterType="String" resultType="SecVO">
+		select userId,
+	              salt,
+	              secKey
+		from  secure
+		where userId = #{userId}
+	</select>
+
+	<select id="checkSecurity" parameterType="String" resultType="SecurityModel">
+		select * from login_history where userId = #{userId}
+	</select>
+
+	<update id="updateSecurityModel" parameterType="SecurityModel">
+		update  login_history set 
+		lastFailedLogin= #{lastFailedLogin},
+		lastSuccessedLogin=#{lastSuccessedLogin},
+		retry=#{retry} 
+		where userid=#{userId};	
+	</update>
+
+	<insert id="insertSecurityModel" parameterType="SecurityModel">
+		insert into login_history(userId, lastFailedLogin, lastSuccessedLogin, retry, clientIp) 
+		values(#{userId},0, 0, 0,#{clientIp})
+	</insert>
+
+</mapper>
